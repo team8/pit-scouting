@@ -73,7 +73,7 @@ export default function QuestionsScreen({ name, number }) {
                             <CheckboxesWithImage question={question["question"]} options={question["options"].map((option, i) => {return option.toString()})} image={question["image"]} updateData={updateData} />
                         }
                         {question["type"] == "picture" && 
-                            <Picture updateData={updateData} />
+                            <Picture updateData={updateData} fName={`${name}-${number}`}/>
                         }
                     </View>
                 ))    
