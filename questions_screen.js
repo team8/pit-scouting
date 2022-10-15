@@ -8,51 +8,48 @@ import CheckboxesWithImage from "./question_types/checkboxes_with_image";
 import Picture from "./question_types/picture";
 import question_list from "./question_list";
 import axios from "axios";
+import  { supabase } from "./supabase";
 
-
-
-const ascToken = ""
 
 export default function QuestionsScreen({ name, number }) {
-    const [data, setData] = useState({
+    const [robotData, setRobotData] = useState({
         team_number: number
     })
+    const [photo, setPhoto] = useState(null);
+
     useEffect(() => {
         LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
         LogBox.ignoreLogs(['componentWillReceiveProps']);
-
     }, [])
 
-    function guardarArchivo(e) {
-        var file = e //the file
-     
-        //   var rawLog = reader.result.split(',')[1]; //extract only thee file data part
-          var dataSend = { dataReq: { data: file, name: `${name} | ${number}`, filetype: '.png' }, fname: "uploadFilesToGoogleDrive" }; //preapre info to send to API
-          fetch('https://script.google.com/macros/s/AKfycbxHdjFJX3-g6wotLaKQ0WY7bYcHUadx2RfgZPOzedeo4kxe6NbCM8tMKwvUrU4-9tsmcA/exec', //your AppsScript URL
-            { method: "POST", body: JSON.stringify(dataSend) }) //send to Api
-            .then(res => res.text()).then((a) => {
-              console.log(a) //See response
-            }).catch(e => console.log(e)) // Or Error in console
-        
-      }
-
     const uploadData = async () => {
-        console.log(JSON.stringify(data));
-        // const response1 = await axios.post("http://137.184.14.29/pit", data["picture"].slice(0, data["picture"].length / 2));
-        // const response2 = await axios.post("http://137.184.14.29/pit", data["picture"].slice(data["picture"].length / 2));
-        // const response2 = await axios.post("https://www.googleapis.com/upload/drive/v3/files?uploadType=media", {
-        //     "body": JSON.stringify({ "name": data["team_number"] + ".jpg", parents: ["1ceMflFYCodZGzioPozOnh7_1L0w8X7Ni"] })
-        // }, {
-        //     headers: { 'Content-Type': 'application/json', 'Authorization': ascToken}
-        // })
-        // guardarArchivo(data["picture"])
-        const response3 = await axios.post("http://137.184.14.29/pit", data);
+        console.log(`Data: ${JSON.stringify(robotData)}`);
+        const response1 = await axios.post(`http://137.184.14.29/pit/2022camb/${number}`, robotData);
+
+        const ext = photo.uri.substring(photo.uri.lastIndexOf(".") + 1);  
+        var formData = new FormData();
+        var fName = `${name.replace(/ /g, "_")}-${number}`;
+        formData.append("files", {
+            uri: photo.uri,
+            name: fName + ".jpg",
+            type: `image/${ext}`
+        })
+
+        const { data, error } = await supabase.storage
+            .from("robot-photos")
+            .upload(fName + ".jpg", formData);
+            console.log(error);
+            
     }
 
     const updateData = (question, answer) => {
-        var localData = data;
+        var localData = robotData;
         localData[question.toString()] = answer;
-        setData(localData);
+        setRobotData(localData);
+    }
+
+    const updatePhoto = (p) => {
+        setPhoto(p);
     }
 
     return (
@@ -73,7 +70,7 @@ export default function QuestionsScreen({ name, number }) {
                             <CheckboxesWithImage question={question["question"]} options={question["options"].map((option, i) => {return option.toString()})} image={question["image"]} updateData={updateData} />
                         }
                         {question["type"] == "picture" && 
-                            <Picture updateData={updateData} fName={`${name.replace(/ /g, "_")}-${number}`}/>
+                            <Picture updatePhoto={updatePhoto} />
                         }
                     </View>
                 ))    

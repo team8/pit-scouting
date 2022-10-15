@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Modal, Image } from "react-native"
 import { Camera } from 'expo-camera';
 import { Entypo } from '@expo/vector-icons';
-import base64 from 'react-native-base64';
 import { createClient } from '@supabase/supabase-js'
 import  { supabase } from "../supabase";
 
 
-export default function Picture({ updateData, fName }) {
+export default function Picture({ updatePhoto }) {
     const [hasPermission, setHasPermission] = useState(null);
     const [type, setType] = useState(Camera.Constants.Type.back);
     const [modalVisible, setModalVisible] = useState(false);
@@ -28,38 +27,9 @@ export default function Picture({ updateData, fName }) {
 
 
     const onPictureSaved = async (photo) => {
-      // console.log(photo.base64);
-      // let compressedImg = photo.base64.split('').reduce((o, c) => {
-      //   if (o[o.length - 2] === c && o[o.length - 1] < 35) o[o.length - 1]++;
-      //   else o.push(c, 0);
-      //   return o;
-      // },[]).map(_ => typeof _ === 'number' ? _.toString(36) : _).join('');
-      // console.log(base64.encode(photo.base64).length);
-      updateData("picture", base64.encode(photo.base64));
-      // console.log(photo.base64.length);
-      
-      const ext = photo.uri.substring(photo.uri.lastIndexOf(".") + 1);
-      console.log(ext);
-      const fileName = photo.uri.replace(/^.*[\\\/]/, "")
-  
-      var formData = new FormData();
-      formData.append("files", {
-        uri: photo.uri,
-        name: fName + ".jpg",
-        type: `image/${ext}`
-      })
-
+      updatePhoto(photo);
       setImg(photo.uri)
-      // console.log(photo.uri);
       setModalVisible(!modalVisible)
-      // try {
-      const { data, error } = await supabase.storage
-        .from("robot-photos")
-        .upload(fName + ".jpg", formData);
-        console.log(error);
-      // } catch (e) {
-      //   ErrorAlert({ title: "Image Upload", message: e.message });
-      // }
     }
 
 
